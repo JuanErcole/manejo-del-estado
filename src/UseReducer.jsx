@@ -1,43 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 
 const SECURITY_CODE = 'paradigma';
 
-export const UseState = ({ name }) => {
+export const UseReducer = ({ name }) => {
 
-  const [state, setState] = useState({
-    value: '',
-    error: false,
-    isLoading: false,
-    deleted: false,
-    confirmed: false 
-  })
-  // const [value, setValue] = useState('');
-  // const [error, setError] = useState(false);
-  // const [loading, setLoading] = useState(false);
+  const [state, dispatch] = useReducer(reducer, initialState);
+console.log(state);
   
 
   const onConfirm = () =>{
-    setState({ 
-      ...state, 
-      error: false, 
-      isLoading: false, 
-      confirmed: true 
-    });
+    dispatch({type: 'CONFIRM'})
   }
 
   const onError = () =>{
-    setState({ 
-      ...state, 
-      error: true, 
-      isLoading: false, 
-    });
+    dispatch({type: 'ERROR'})
   }
 
   useEffect(() => {
 
-    if (!!state.isLoading){
+    if (!!state.loading){
+
       
-      setState({ ...state, error: false });
 
       setTimeout(() => {
         console.log('haciendo validacion');
@@ -55,30 +38,22 @@ export const UseState = ({ name }) => {
 
     console.log('terminando el efecto');
   
-  }, [state.isLoading])
+  }, [state.loading])
 
   const onInputChange = (e) =>{
-    setState({ ...state, value: e.target.value });
+    dispatch({type: 'WRITE', payload: e.target.value})
   }
 
-  const onChek = () => {
-    setState({ ...state, isLoading: true});
+  const onCheck = () => {
+    dispatch({type: 'CHECK'})
   }
 
   const onReset = () => {
-    setState({ 
-      ...state, 
-      value:"", 
-      confirmed: false,
-      deleted: false 
-    })
+    dispatch({type: 'RESET'})
   }
 
   const onDeleted = ()=>{
-    setState({ 
-      ...state, 
-      deleted: true 
-    })
+    dispatch({type: 'DELETED'})
   }
 
   
@@ -92,7 +67,7 @@ export const UseState = ({ name }) => {
           <h1>Error: El codigo es incorrecto</h1>
         )}
   
-        {state.isLoading && (
+        {state.loading && (
           <h1>Cargando...</h1>
         )}
   
@@ -102,7 +77,7 @@ export const UseState = ({ name }) => {
          onChange={onInputChange}
         />
         <button
-          onClick={ onChek }
+          onClick={ onCheck }
         >
           Comprobar
         </button>
@@ -138,3 +113,55 @@ export const UseState = ({ name }) => {
     )
   }
 }
+
+
+const initialState = {
+  value: '',
+  error: false,
+  loading: false,
+  deleted: false,
+  confirmed: false
+}
+
+const reducerObject = (state, payload) => ({
+
+  'ERROR': {
+    ...state,
+    error: true,
+    loading: false
+  },
+  'CHECK': {
+    ...state,
+    error: false,
+    loading: true
+  },
+  'RESET': {
+    ...state,
+    value: "",
+    confirmed: false,
+    deleted: false
+  },
+  'CONFIRM': {
+    ...state,
+    error: false,
+    loading: false,
+    confirmed: true
+  },
+  'DELETED': {
+    ...state,
+    deleted: true
+  },
+  'WRITE':{
+    ...state,
+    value: payload
+  }
+})
+
+const reducer = (state, action) => {
+  if (reducerObject(state)[action.type]) {
+    return reducerObject(state, action.payload)[action.type];
+  } else {
+    return state;
+  }
+}
+
